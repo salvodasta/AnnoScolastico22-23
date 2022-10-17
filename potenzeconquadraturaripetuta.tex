@@ -1,0 +1,83 @@
+\documentclass[14pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{makeidx}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{listings}
+\lstnewenvironment{codice_python}[1][]
+{\lstset{basicstyle=\small\ttfamily, columns=fullflexible,
+		keywordstyle=\color{red}\bfseries, commentstyle=\color{blue},
+		language=python, basicstyle=\small,
+		numbers=left, numberstyle=\tiny,
+		stepnumber=2, numbersep=5pt, frame=shadowbox, #1}}{}
+
+\title{Algoritmo veloce di elevazione a potenza modulo n ($ B^m \mod n $)}
+\begin{document}
+	\maketitle
+\section{rappresentazione dell'esponente come somme e prodotti}	
+	Supponiamo di voler calcolare $ B^m \mod n $.\\
+	Sia:
+%	Sia $ m=m_{k-1}m_{k-2}\cdots m_0 $ la rappresentazione binaria del numero decimale m.\\
+%	
+%	sarà dunque i  \[m=m_{k-1}2^{k-1}+m_{k-2}2^{k-2}+ \dots + m_02^0 \hspace{5em}m_i\in\{0,1\} \] 
+%	
+%	Se B è un intero avrò:
+%	\[ B^m=B^{m_{k-1}2^{k-1}+m_{k-2}2^{k-2}+ \dots + m_02^0 } =B^{m_{k-1}}B^{m_{k-2}2^{k-2}}\dots B^{m_02^0 }\]
+%	
+%	Un modo per ottenere il valore m usando moltiplicazioni e somme è il seguente:
+	\[ m=(b_0b_1b_2\cdots b_n)_2 \] (dove i $ b_i $ sono cifre binarie e $ b_0 $ è la cifra meno significativa)
+	\[ m=b_0+2(b_1+2(b_2+2(\cdots (b_n+2\cdot 1)))) \]
+	Esempio:
+	\begin{equation}
+		m=13_{10}=(1101)_2 =1+\overbrace{2(0+\underbrace{2(1+2\cdot 1)}_6)}^{12} \label{1}
+	\end{equation}
+	\[  \]
+	Ed allora:
+	\begin{equation}
+		B^{b_0+2(b_1+2(b_2+2(\cdots (b_n+2\cdot 1))))} \label{2}
+	\end{equation}
+	\[  \]
+	Osservando la \eqref{2} si può notare come partendo dal bit meno significativo $ b_0 $ dell'esponente l'algoritmo può essere riassunto nei seguenti passi:
+	\begin{enumerate}
+		\item si parte dal bit meno significativo $ b_0 $  e si procede fino a $ b_n $ 
+		\item se $ b_i=0 $ si raddoppia l'esponente (cioè si eleva $ B $ al quadrato)
+		\item se $ b_i=1 $ si raddoppia e si somma 1 (oltre ad elevare $ B $ al quadrato si moltiplica il risultato $ B $)
+	\end{enumerate}
+Questo perché dalla \eqref{2} posso scrivere:
+ 	\begin{equation}
+ 		B^{b_0+2(b_1+2(b_2+2(\cdots (b_n+2\cdot 1))))}=B^{b_0}(B^{b_1}(B^{b_2}(\cdots (B^{b_n})^2)^2)^2)^2
+ 	\end{equation}
+ Esempi:
+ \begin{equation}
+ 	3^{12}=3^{(1100)_2}=3^0\overbrace{(3^0(\underbrace{3^1(3^1)^2}_{3\times (3)^2=27})^2)^2}^{(27^2)^2=531441}
+ \end{equation}
+\[ 5^{20}=5^{(10100)_2} =5^0\underbrace{(5^0\overbrace{(5^1(\underbrace{5^0(5^1)^2)^2}_{625})^2}^{(5\times 625)^2=9765625})^2}_{(9765625)^2=95367431640625}=(((5(5)^2)^2)^2)^2=(5)^4\times (5^{16})\]
+%	Poiché gli $ m_i \in \{0,1\}$ allora quando $ m_i=1 $ bisognerà moltiplicare per $ B^{2^{m_i}} $ se invece $ m_i=0   $ allora bisognerà moltiplicare per 1. \\
+%	Ad esempio:
+%	\[ 5_{10}^6=5^{(110)_2}=5^{1\cdot 2^2+1\cdot 2^1+0\cdot 2^0}=5^{4}\cdot 5^{2}\cdot 5^{0}=625\cdot 25\cdot1= \]
+%	altro esempio:
+%	\[ 2^7=2^{111}=2^4 \cdot 2^2 \cdot 2 =16\cdot 4\cdot 2=128\]
+	\section{Algoritmo}
+	
+	\begin{codice_python}
+	#Algoritmo di conversione da decimale a binario
+	def dec2bin(n):
+		b=[ ]
+		while n>0:
+			b.insert(0,'0') if (n%2==0) else b.insert(0,'1')
+			n= int (n/2) 
+		return b
+	#potenza con metodo delle quadrature ripetute
+	def potqr(b,exp,mod):
+		c,d=0,1
+		esp2=dec2bin(exp) #converte in binario l'esponente
+		for k in range (0, len (esp2)):
+			d=(d * d)%mod
+			if esp2[k]=="1":
+				d=(d * b)%mod 
+		return d
+	\end{codice_python}
+\end{document}
